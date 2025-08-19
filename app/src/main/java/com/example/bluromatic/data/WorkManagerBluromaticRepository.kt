@@ -19,25 +19,33 @@ package com.example.bluromatic.data
 import android.content.Context
 import android.net.Uri
 import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.example.bluromatic.KEY_BLUR_LEVEL
 import com.example.bluromatic.KEY_IMAGE_URI
+import com.example.bluromatic.getImageUri
+import com.example.bluromatic.workers.BlurWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
-
+    // 通过 context.getImageUri() 获取了一个图片的 Ur
+    private var imageUri: Uri = context.getImageUri()
+    private val workManager = WorkManager.getInstance(context)
     override val outputWorkInfo: Flow<WorkInfo?> = MutableStateFlow(null)
 
-    /**
-     * Create the WorkRequests to apply the blur and save the resulting image
-     * @param blurLevel The amount to blur the image
-     */
-    override fun applyBlur(blurLevel: Int) {}
+    // 实现接口 BluromaticRepository 的方法，用于发起“模糊图片”的后台任务。
+    override fun applyBlur(blurLevel: Int) {
+        //  创建一个只执行一次的 WorkRequest，指定任务是 BlurWorker
+        val blurBuilder = OneTimeWorkRequestBuilder<BlurWorker>()
+        // 通过 setInputData 方法，把图片的 Uri 和模糊等级一起传递给 BlurWorker
+        blurBuilder.setInputData(createInputDataForWorkRequest(blurLevel,imageUri))
+        // 把这个任务加入 WorkManager 队列，系统会自动调度执行。
+        workManager.enqueue(blurBuilder.build())
 
-    /**
-     * Cancel any ongoing WorkRequests
-     * */
+    }
+
     override fun cancelWork() {}
 
     /**

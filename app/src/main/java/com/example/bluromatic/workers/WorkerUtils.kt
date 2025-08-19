@@ -17,6 +17,7 @@
 package com.example.bluromatic.workers
 //  一些便捷方法，使用这些方法显示 Notifications 和代码，以便将位图保存到文件中。
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -24,6 +25,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -51,6 +53,7 @@ private const val TAG = "WorkerUtils"
  * @param message Message shown on the notification
  * @param context Context needed to create Toast
  */
+@RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
 fun makeStatusNotification(message: String, context: Context) {
 
     // Make a channel if necessary
@@ -79,6 +82,7 @@ fun makeStatusNotification(message: String, context: Context) {
         .setVibrate(LongArray(0))
 
     // Show the notification
+    // Android 13（API 33）及以上版本，发送通知需要动态请求通知权限（POST_NOTIFICATIONS）
     NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, builder.build())
 }
 
